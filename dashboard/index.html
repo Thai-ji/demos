@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales Performance Dashboard · Demo</title>
+<!-- Published copy: libraries load from unpkg / jsDelivr CDN. -->
+<link rel="stylesheet" href="https://unpkg.com/element-plus@2.5.6/dist/index.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app" v-cloak>
+
+  <!-- ================= top bar ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">NP</div>
+      <div class="brand-text">
+        <div class="brand-name">Northwind Performance</div>
+        <div class="brand-sub">Sales analytics workspace</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="pill">Sample data</span>
+      <el-button size="small" @click="openAbout">About this demo</el-button>
+      <div class="user">
+        <div class="avatar">AM</div>
+        <div class="user-text">
+          <div class="user-name">Alex Morgan</div>
+          <div class="user-role">Revenue Operations</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= filters ================= -->
+  <section class="filterbar">
+    <div class="presets">
+      <button class="preset" :class="{on: preset==='30'}" @click="applyPreset('30')">30D</button>
+      <button class="preset" :class="{on: preset==='90'}" @click="applyPreset('90')">90D</button>
+      <button class="preset" :class="{on: preset==='180'}" @click="applyPreset('180')">6M</button>
+      <button class="preset" :class="{on: preset==='365'}" @click="applyPreset('365')">12M</button>
+      <button class="preset" :class="{on: preset==='ytd'}" @click="applyPreset('ytd')">YTD</button>
+    </div>
+    <el-date-picker
+      v-model="dateRange" type="daterange" size="default"
+      value-format="YYYY-MM-DD" format="MMM D, YYYY"
+      start-placeholder="Start date" end-placeholder="End date"
+      :disabled-date="disabledDate" :clearable="false"
+      @change="onDateChange" class="f-date" />
+    <el-select v-model="filters.regions" multiple collapse-tags collapse-tags-tooltip
+      placeholder="All regions" class="f-sel" @change="reload">
+      <el-option v-for="r in meta.regions" :key="r.key" :label="r.name" :value="r.key" />
+    </el-select>
+    <el-select v-model="filters.channels" multiple collapse-tags collapse-tags-tooltip
+      placeholder="All channels" class="f-sel" @change="reload">
+      <el-option v-for="c in meta.channels" :key="c.key" :label="c.name" :value="c.key" />
+    </el-select>
+    <el-button text @click="resetFilters">Reset</el-button>
+    <span class="range-label">{{ rangeLabel }}</span>
+  </section>
+
+  <main class="wrap">
+
+    <!-- ================= KPI cards ================= -->
+    <section class="kpis">
+      <div class="kpi" v-for="k in data.kpis" :key="k.key">
+        <div class="kpi-label">{{ k.label }}</div>
+        <div class="kpi-value">{{ kpiValue(k) }}</div>
+        <div class="kpi-foot">
+          <span class="delta" :class="kpiGood(k) ? 'up' : 'down'">
+            {{ k.delta >= 0 ? '▲' : '▼' }} {{ fmtDelta(k.delta) }}
+          </span>
+          <span class="kpi-hint">{{ k.hint }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= charts ================= -->
+    <section class="row">
+      <div class="panel grow">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Revenue trend</div>
+            <div class="panel-sub">Monthly revenue against the same months last year</div>
+          </div>
+        </div>
+        <div id="chart-trend" class="chart chart-lg"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Weekly revenue</div>
+            <div class="panel-sub">Last 12 weeks in the selected range</div>
+          </div>
+        </div>
+        <div id="chart-week" class="chart chart-lg"></div>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="panel grow">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Revenue by region</div>
+            <div class="panel-sub">Ranked by revenue in the selected period</div>
+          </div>
+        </div>
+        <div id="chart-region" class="chart chart-md"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Revenue by channel</div>
+            <div class="panel-sub">Share of total revenue</div>
+          </div>
+        </div>
+        <div id="chart-channel" class="chart chart-md"></div>
+      </div>
+    </section>
+
+    <!-- ================= detail table ================= -->
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Performance by region &amp; channel</div>
+          <div class="panel-sub">
+            {{ table.total }} combinations · growth compares with the previous period of the same length
+          </div>
+        </div>
+        <el-button size="small" @click="exportCsv">Export CSV</el-button>
+      </div>
+
+      <el-table :data="table.rows" v-loading="tableLoading" size="default"
+        @sort-change="onSortChange" :default-sort="{ prop: 'revenue', order: 'descending' }"
+        class="tbl" row-key="id">
+        <el-table-column prop="region" label="Region" min-width="160" sortable="custom" />
+        <el-table-column prop="channel" label="Channel" min-width="160" sortable="custom" />
+        <el-table-column prop="revenue" label="Revenue" min-width="130" align="right" sortable="custom">
+          <template #default="{ row }">{{ fmtMoney(row.revenue) }}</template>
+        </el-table-column>
+        <el-table-column prop="orders" label="Orders" min-width="100" align="right" sortable="custom">
+          <template #default="{ row }">{{ fmtInt(row.orders) }}</template>
+        </el-table-column>
+        <el-table-column prop="aov" label="AOV" min-width="110" align="right" sortable="custom">
+          <template #default="{ row }">${{ row.aov.toFixed(0) }}</template>
+        </el-table-column>
+        <el-table-column prop="conv" label="Conversion" min-width="120" align="right" sortable="custom">
+          <template #default="{ row }">{{ fmtPct(row.conv) }}</template>
+        </el-table-column>
+        <el-table-column prop="refundRate" label="Refund rate" min-width="120" align="right" sortable="custom">
+          <template #default="{ row }">{{ fmtPct(row.refundRate) }}</template>
+        </el-table-column>
+        <el-table-column prop="growth" label="Growth" min-width="110" align="right" sortable="custom">
+          <template #default="{ row }">
+            <span :class="row.growth >= 0 ? 'g-up' : 'g-down'">{{ fmtDelta(row.growth) }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="pager">
+        <el-pagination background layout="total, sizes, prev, pager, next"
+          :total="table.total" :current-page="table.page" :page-size="table.pageSize"
+          :page-sizes="[8, 12, 20]" @current-change="onPageChange" @size-change="onPageSizeChange" />
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Demo build · sample dataset (669 days, synthetic) · no server, no tracking</span>
+      <span>Data updated {{ meta.updatedAt }}</span>
+    </footer>
+  </main>
+
+  <!-- ================= about dialog ================= -->
+  <el-dialog v-model="aboutVisible" title="About this demo" width="560px" class="about-dialog">
+    <p v-for="(l, i) in about.lines" :key="i" class="about-line">{{ l }}</p>
+    <div class="about-note">Built with Vue 3 · Element Plus · ECharts</div>
+  </el-dialog>
+</div>
+
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.5.6/dist/index.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="mock-api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

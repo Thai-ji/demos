@@ -1,0 +1,171 @@
+/* =============================================================
+ * styles.css — Sales Performance Dashboard (demo)
+ * Plain CSS, no preprocessor, no build step.
+ * ============================================================= */
+:root {
+  --ink: #1f2a44;
+  --ink-2: #4a5878;
+  --sub: #7b89a6;
+  --line: #e4e9f2;
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --brand: #3b5bdb;
+  --brand-soft: #eef1fd;
+  --green: #0ca678;
+  --red: #e03131;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(31, 42, 68, .05), 0 6px 18px rgba(31, 42, 68, .05);
+}
+
+* { box-sizing: border-box; }
+[v-cloak] { display: none; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------- top bar ---------------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+  height: 64px; padding: 0 28px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, #3b5bdb, #7048e8);
+  color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .5px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-name { font-size: 15px; font-weight: 650; letter-spacing: -.1px; }
+.brand-sub { font-size: 11.5px; color: var(--sub); margin-top: 1px; }
+
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.pill {
+  font-size: 11.5px; color: #8a6d3b;
+  background: #fdf6e3; border: 1px solid #f5e6c8;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+.user { display: flex; align-items: center; gap: 9px; padding-left: 6px; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--brand-soft); color: var(--brand);
+  font-size: 12px; font-weight: 650;
+  display: flex; align-items: center; justify-content: center;
+}
+.user-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
+.user-role { font-size: 11px; color: var(--sub); line-height: 1.3; }
+
+/* ---------------- filter bar ---------------- */
+.filterbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 28px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 64px; z-index: 19;
+}
+.presets { display: flex; background: #f1f4fa; border-radius: 9px; padding: 3px; }
+.preset {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  padding: 5px 11px; border-radius: 7px; line-height: 1.4;
+  font-family: inherit;
+}
+.preset:hover { color: var(--brand); }
+.preset.on { background: #fff; color: var(--brand); box-shadow: 0 1px 3px rgba(31,42,68,.12); }
+.f-date { width: 250px; }
+.f-sel { width: 178px; }
+.range-label { margin-left: auto; font-size: 12.5px; color: var(--sub); white-space: nowrap; }
+
+/* ---------------- layout ---------------- */
+.wrap { padding: 20px 28px 40px; max-width: 1560px; margin: 0 auto; }
+
+/* ---------------- KPI cards ---------------- */
+.kpis {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-bottom: 16px;
+}
+.kpi {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 15px 16px 13px;
+  box-shadow: var(--shadow);
+}
+.kpi-label { font-size: 12px; color: var(--sub); font-weight: 550; letter-spacing: .1px; }
+.kpi-value {
+  font-size: 25px; font-weight: 680; letter-spacing: -.6px;
+  margin: 7px 0 8px; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.kpi-foot { display: flex; align-items: baseline; gap: 7px; }
+.delta { font-size: 12px; font-weight: 650; white-space: nowrap; }
+.delta.up { color: var(--green); }
+.delta.down { color: var(--red); }
+.kpi-hint { font-size: 11px; color: #9aa8c4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------------- panels & charts ---------------- */
+.row { display: flex; gap: 14px; margin-bottom: 16px; }
+.panel {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px 18px 12px;
+  min-width: 0; flex: 1 1 0;
+}
+.panel.grow { flex: 1.62 1 0; }
+.panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-title { font-size: 14px; font-weight: 650; letter-spacing: -.1px; }
+.panel-sub { font-size: 11.5px; color: var(--sub); margin-top: 3px; }
+
+.chart { width: 100%; }
+.chart-lg { height: 268px; }
+.chart-md { height: 232px; }
+
+/* ---------------- table ---------------- */
+.tbl { width: 100%; }
+.tbl .el-table__header th {
+  background: #fafbfe !important;
+  color: var(--ink-2) !important;
+  font-weight: 600 !important;
+  font-size: 12.5px;
+}
+.tbl .el-table__cell { font-size: 13px; }
+.tbl .cell { font-variant-numeric: tabular-nums; }
+.g-up { color: var(--green); font-weight: 600; }
+.g-down { color: var(--red); font-weight: 600; }
+.pager { display: flex; justify-content: flex-end; padding: 12px 2px 2px; }
+
+/* ---------------- footer ---------------- */
+.foot {
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: 11.5px; color: #9aa8c4;
+  padding: 14px 2px 0;
+}
+
+/* ---------------- about dialog ---------------- */
+.about-line { font-size: 13.5px; line-height: 1.65; color: var(--ink-2); margin: 0 0 10px; }
+.about-note { font-size: 12px; color: var(--sub); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+
+/* ---------------- responsive ---------------- */
+@media (max-width: 1420px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1080px) {
+  .row { flex-direction: column; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .topbar, .filterbar { padding-left: 16px; padding-right: 16px; }
+  .wrap { padding: 16px; }
+  .range-label { margin-left: 0; }
+}
+
+/* Element Plus small refinements to match the dashboard look */
+.el-button--small { font-weight: 550; }
+.el-select__wrapper, .el-date-editor.el-input__wrapper { box-shadow: 0 0 0 1px var(--line) inset; }
+.el-pagination.is-background .el-pager li { font-weight: 550; }
