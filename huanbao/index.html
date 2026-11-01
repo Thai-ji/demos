@@ -1,0 +1,676 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<!-- 网页演示版：不设 CSP，双击本地 index.html（file:// 协议）也能正常加载本地 vendor 脚本 -->
+<title>环保运营管理平台 · 演示</title>
+<link rel="stylesheet" href="https://unpkg.com/element-plus@2.5.6/dist/index.css" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app" v-cloak>
+  <!-- ================= 登录页 ================= -->
+  <div class="login-wrap" v-if="!session">
+    <div class="login-left">
+      <div class="login-left-inner">
+        <div class="login-left-title">水处理设备<br />全生命周期管理</div>
+        <div class="login-left-sub">设备台账 · 状态流水 · 维护记录 · 备件库存</div>
+        <ul class="login-points">
+          <li>设备状态变更全程留痕，可追溯到人</li>
+          <li>维护领用备件自动扣库存，账实一致</li>
+          <li>低库存与保养到期双预警</li>
+        </ul>
+      </div>
+      <div class="login-left-foot">环保运营管理平台 · 静态演示版（示例数据）</div>
+    </div>
+    <div class="login-right">
+      <div class="login-card">
+        <div class="login-head">
+          <div class="brand-logo">环</div>
+          <div>
+            <div class="login-title">环保运营管理平台</div>
+            <div class="login-sub">水处理设备管理系统</div>
+          </div>
+        </div>
+        <div class="login-form">
+          <div class="login-label">账号登录</div>
+          <el-input v-model="loginForm.username" size="large" placeholder="用户名"
+                    clearable @keyup.enter="doLogin"></el-input>
+          <el-input v-model="loginForm.password" size="large" type="password" placeholder="密码"
+                    show-password @keyup.enter="doLogin"></el-input>
+          <el-button type="primary" size="large" class="login-btn" :loading="logging" @click="doLogin">
+            登 录
+          </el-button>
+          <div class="login-tip" v-if="loginError">{{ loginError }}</div>
+          <div class="login-demo">
+            演示账号 <b>admin</b> ｜ 密码 <b>admin123</b>
+          </div>
+          <div class="login-demo dim2">密码连续错误 5 次，账号锁定 5 分钟</div>
+        </div>
+        <div class="login-foot">网页演示版 v0.1.0 · 演示数据，非生产环境</div>
+      </div>
+    </div>
+  </div>
+
+  <el-container class="app-shell" v-else>
+    <!-- 左侧导航 -->
+    <el-aside width="212px" class="side">
+      <div class="brand">
+        <div class="brand-logo">环</div>
+        <div class="brand-text">
+          <div class="brand-title">环保运营管理平台</div>
+          <div class="brand-sub">水处理设备管理系统</div>
+        </div>
+      </div>
+      <el-menu :default-active="view" class="side-menu" @select="go"
+               background-color="#1f2937" text-color="#aeb9c7" active-text-color="#ffffff">
+        <el-menu-item index="dashboard">首页看板</el-menu-item>
+        <el-menu-item index="equipment">设备管理</el-menu-item>
+        <el-menu-item index="maintenance">维护记录</el-menu-item>
+        <el-menu-item index="stock">备件库存</el-menu-item>
+        <el-menu-item index="customer">客户信息</el-menu-item>
+        <el-menu-item index="settings">系统设置</el-menu-item>
+      </el-menu>
+      <div class="side-foot">
+        <div class="side-foot-line">网页演示版 v0.1.0</div>
+        <div class="side-foot-line dim">演示数据 · 非生产环境</div>
+      </div>
+    </el-aside>
+
+    <el-container>
+      <!-- 顶部栏 -->
+      <el-header height="58px" class="top">
+        <div class="top-left">
+          <span class="page-title">{{ pageTitle }}</span>
+          <span class="page-desc">{{ pageDesc }}</span>
+        </div>
+        <div class="top-right">
+          <el-tag type="warning" effect="plain" size="small">演示数据</el-tag>
+          <el-button size="small" text @click="aboutDemo">关于本演示</el-button>
+          <div class="user-chip">
+            <span class="user-dot"></span>{{ session.displayName }} · {{ session.roleLabel }}
+          </div>
+          <el-button size="small" text @click="logout">退出登录</el-button>
+        </div>
+      </el-header>
+
+      <!-- 演示版说明条：刻意常驻，不伪装成上线系统 -->
+      <div class="demo-bar">
+        <span class="demo-bar-dot"></span>
+        <span><b>静态网页演示版</b>：界面与交互为真实实现，数据为内置示例（刷新即恢复初始值），不连接服务器，非生产环境。</span>
+      </div>
+
+      <el-main class="main">
+        <!-- ============ 首页看板 ============ -->
+        <div v-if="view === 'dashboard'">
+          <el-row :gutter="14">
+            <el-col :span="6" v-for="c in cards" :key="c.label">
+              <div class="stat" :class="c.tone">
+                <div class="stat-label">{{ c.label }}</div>
+                <div class="stat-value">{{ c.value }}<span class="stat-unit">{{ c.unit }}</span></div>
+                <div class="stat-foot">{{ c.foot }}</div>
+              </div>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="14" style="margin-top:14px" class="chart-row">
+            <el-col :span="15">
+              <div class="panel">
+                <div class="panel-head"><span>维护次数趋势（按月）</span><span class="panel-hint">单位：次</span></div>
+                <div id="chartBar" class="chart"></div>
+              </div>
+            </el-col>
+            <el-col :span="9">
+              <div class="panel">
+                <div class="panel-head"><span>设备状态分布</span></div>
+                <div id="chartPie" class="chart"></div>
+              </div>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="14" style="margin-top:14px">
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head">
+                  <span>低库存备件</span>
+                  <el-tag type="danger" size="small" effect="dark">{{ stats.lowStock.length }} 项</el-tag>
+                </div>
+                <el-table :data="stats.lowStock" size="small" max-height="212" empty-text="库存充足，无预警">
+                  <el-table-column prop="part_no" label="编号" width="82"></el-table-column>
+                  <el-table-column prop="name" label="备件名称" min-width="120" show-overflow-tooltip></el-table-column>
+                  <el-table-column label="库存 / 安全" width="112">
+                    <template #default="{ row }">
+                      <span class="danger-text">{{ row.stock_qty }}</span>
+                      <span class="dim"> / {{ row.safety_qty }} {{ row.unit }}</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head">
+                  <span>保养到期提醒（30 天内 / 含逾期）</span>
+                  <el-tag type="warning" size="small" effect="dark">{{ stats.dueSoon.length }} 项</el-tag>
+                </div>
+                <el-table :data="stats.dueSoon" size="small" max-height="212" empty-text="暂无到期设备">
+                  <el-table-column prop="equipment_no" label="设备编号" width="110"></el-table-column>
+                  <el-table-column prop="customer" label="客户" min-width="90" show-overflow-tooltip></el-table-column>
+                  <el-table-column prop="next_due_date" label="到期日" width="98"></el-table-column>
+                </el-table>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+
+        <!-- ============ 设备管理 ============ -->
+        <div v-if="view === 'equipment'">
+          <div class="panel">
+            <div class="toolbar">
+              <el-input v-model="eqQuery.keyword" placeholder="搜索设备编号 / 型号 / 名称 / 客户"
+                        clearable style="width:300px" @keyup.enter="loadEquipment(1)"></el-input>
+              <el-select v-model="eqQuery.status" placeholder="全部状态" clearable style="width:130px">
+                <el-option v-for="s in dict.equipmentStatus" :key="s.value" :label="s.label" :value="s.value"></el-option>
+              </el-select>
+              <el-select v-model="eqQuery.customerId" placeholder="全部客户" clearable style="width:170px">
+                <el-option v-for="c in customers" :key="c.id" :label="c.short_name || c.name" :value="c.id"></el-option>
+              </el-select>
+              <el-button type="primary" @click="loadEquipment(1)">查询</el-button>
+              <div class="flex-1"></div>
+              <el-button type="primary" plain @click="openEquipmentCreate">+ 新增设备</el-button>
+            </div>
+
+            <el-table :data="equipment.rows" size="small" v-loading="loading" style="margin-top:12px">
+              <el-table-column prop="equipment_no" label="设备编号" width="122"></el-table-column>
+              <el-table-column prop="name" label="设备名称" min-width="160" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="model" label="型号" width="96"></el-table-column>
+              <el-table-column prop="category" label="分类" width="78"></el-table-column>
+              <el-table-column prop="customer_name" label="归属客户" min-width="110" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="install_address" label="安装位置" min-width="150" show-overflow-tooltip></el-table-column>
+              <el-table-column label="状态" width="88">
+                <template #default="{ row }">
+                  <el-tag :type="statusTag(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="维护" width="62" align="center">
+                <template #default="{ row }">{{ row.maintenance_count }} 次</template>
+              </el-table-column>
+              <el-table-column label="操作" width="186" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="openEquipmentDetail(row)">详情</el-button>
+                  <el-button link type="warning" size="small" @click="openStatusDialog(row)">改状态</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pager">
+              <span class="dim">共 {{ equipment.total }} 台设备</span>
+              <el-pagination background layout="prev, pager, next" :total="equipment.total"
+                             :page-size="equipment.pageSize" :current-page="equipment.page"
+                             @current-change="loadEquipment"></el-pagination>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ 维护记录 ============ -->
+        <div v-if="view === 'maintenance'">
+          <div class="panel">
+            <div class="toolbar">
+              <el-input v-model="mtQuery.keyword" placeholder="搜索单号 / 设备编号 / 客户"
+                        clearable style="width:280px" @keyup.enter="loadMaintenance(1)"></el-input>
+              <el-select v-model="mtQuery.type" placeholder="全部类型" clearable style="width:130px">
+                <el-option v-for="t in dict.maintenanceType" :key="t.value" :label="t.label" :value="t.value"></el-option>
+              </el-select>
+              <el-button type="primary" @click="loadMaintenance(1)">查询</el-button>
+              <div class="flex-1"></div>
+              <el-button type="primary" plain @click="openMaintenanceCreate">+ 新增维护记录</el-button>
+            </div>
+
+            <el-table :data="maintenance.rows" size="small" v-loading="loading" style="margin-top:12px">
+              <el-table-column prop="record_no" label="单号" width="146"></el-table-column>
+              <el-table-column prop="occurred_at" label="日期" width="104">
+                <template #default="{ row }">{{ (row.occurred_at || '').slice(0, 10) }}</template>
+              </el-table-column>
+              <el-table-column prop="equipment_no" label="设备编号" width="118"></el-table-column>
+              <el-table-column prop="customer_name" label="客户" min-width="100" show-overflow-tooltip></el-table-column>
+              <el-table-column label="类型" width="94">
+                <template #default="{ row }">
+                  <el-tag size="small" :type="row.type === 'repair' ? 'danger' : 'info'">
+                    {{ typeLabel(row.type) }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="fault_desc" label="故障现象 / 工作内容" min-width="230" show-overflow-tooltip></el-table-column>
+              <el-table-column label="备件" width="62" align="center">
+                <template #default="{ row }">{{ row.part_count }} 项</template>
+              </el-table-column>
+              <el-table-column label="费用合计" width="96" align="right">
+                <template #default="{ row }">¥{{ (Number(row.cost_labor) + Number(row.cost_part)).toFixed(2) }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="70" fixed="right">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="openMaintenanceDetail(row)">查看</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="pager">
+              <span class="dim">共 {{ maintenance.total }} 条记录</span>
+              <el-pagination background layout="prev, pager, next" :total="maintenance.total"
+                             :page-size="maintenance.pageSize" :current-page="maintenance.page"
+                             @current-change="loadMaintenance"></el-pagination>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ 备件库存 ============ -->
+        <div v-if="view === 'stock'">
+          <div class="panel">
+            <div class="panel-head">
+              <span>备件库存</span>
+              <span class="panel-hint">
+                库存 ≤ 安全库存的备件标红；库存数字只能通过出入库流水变更，不允许直接改
+              </span>
+            </div>
+            <el-table :data="spares" size="small" :row-class-name="stockRowClass" style="margin-top:4px">
+              <el-table-column prop="part_no" label="编号" width="90"></el-table-column>
+              <el-table-column prop="name" label="备件名称" min-width="150"></el-table-column>
+              <el-table-column prop="spec" label="规格" min-width="120"></el-table-column>
+              <el-table-column prop="unit" label="单位" width="70"></el-table-column>
+              <el-table-column label="当前库存" width="104" align="right">
+                <template #default="{ row }">
+                  <span :class="row.is_low ? 'danger-text bold' : ''">{{ row.stock_qty }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="safety_qty" label="安全库存" width="94" align="right"></el-table-column>
+              <el-table-column prop="location" label="库位" width="110"></el-table-column>
+              <el-table-column label="单价" width="94" align="right">
+                <template #default="{ row }">¥{{ Number(row.unit_price || 0).toFixed(2) }}</template>
+              </el-table-column>
+              <el-table-column label="状态" width="94">
+                <template #default="{ row }">
+                  <el-tag v-if="row.is_low" type="danger" size="small" effect="dark">低于安全库存</el-tag>
+                  <el-tag v-else type="success" size="small" effect="plain">正常</el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- ============ 客户信息 ============ -->
+        <div v-if="view === 'customer'">
+          <div class="panel">
+            <el-table :data="customers" size="small">
+              <el-table-column prop="name" label="客户名称" min-width="200"></el-table-column>
+              <el-table-column prop="contact_person" label="联系人" width="90"></el-table-column>
+              <el-table-column prop="phone" label="联系电话" width="126"></el-table-column>
+              <el-table-column prop="industry" label="行业" width="80"></el-table-column>
+              <el-table-column label="合作等级" width="94">
+                <template #default="{ row }">
+                  <el-tag size="small" :type="row.cooperation_level === 'key' ? 'danger' : 'info'" effect="plain">
+                    {{ levelLabel(row.cooperation_level) }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="equipment_count" label="名下设备" width="90" align="center"></el-table-column>
+              <el-table-column prop="first_deal_date" label="首次合作" width="104"></el-table-column>
+            </el-table>
+          </div>
+        </div>
+        <!-- ============ 系统设置 ============ -->
+        <div v-if="view === 'settings'">
+          <el-row :gutter="14">
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head"><span>系统参数</span><span class="panel-hint">存放在 app_setting 表</span></div>
+                <el-table :data="settingsData.list" size="small" empty-text="暂无参数">
+                  <el-table-column prop="key" label="参数" width="160"></el-table-column>
+                  <el-table-column prop="value" label="值" min-width="120" show-overflow-tooltip></el-table-column>
+                  <el-table-column label="更新时间" width="150">
+                    <template #default="{ row }">{{ fmt(row.updated_at) }}</template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head"><span>用户与角色</span><span class="panel-hint">演示版只读</span></div>
+                <el-table :data="settingsData.users" size="small" empty-text="暂无用户">
+                  <el-table-column prop="username" label="账号" width="86"></el-table-column>
+                  <el-table-column prop="display_name" label="姓名" width="104"></el-table-column>
+                  <el-table-column label="角色" width="104">
+                    <template #default="{ row }">
+                      <el-tag size="small" :type="row.role === 'admin' ? 'danger' : 'info'" effect="plain">
+                        {{ roleLabel(row.role) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="状态" width="76">
+                    <template #default="{ row }">
+                      <el-tag size="small" :type="row.status === 1 ? 'success' : 'info'">
+                        {{ row.status === 1 ? '启用' : '停用' }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="最近登录" min-width="140">
+                    <template #default="{ row }">{{ row.last_login_at ? fmt(row.last_login_at) : '—' }}</template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="14" style="margin-top:14px">
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head"><span>运行环境</span></div>
+                <el-descriptions :column="1" border size="small">
+                  <el-descriptions-item label="版本">{{ info.version }}</el-descriptions-item>
+                  <el-descriptions-item label="数据目录">{{ info.dataDir }}</el-descriptions-item>
+                  <el-descriptions-item label="数据库文件">{{ info.dbPath }}</el-descriptions-item>
+                </el-descriptions>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="panel">
+                <div class="panel-head"><span>数据概况</span></div>
+                <el-descriptions :column="2" border size="small">
+                  <el-descriptions-item label="设备">{{ stats.equipment.total || 0 }} 台</el-descriptions-item>
+                  <el-descriptions-item label="客户">{{ customers.length }} 家</el-descriptions-item>
+                  <el-descriptions-item label="维护记录">{{ stats.maintenance.count || 0 }} 条</el-descriptions-item>
+                  <el-descriptions-item label="备件">{{ spares.length }} 种</el-descriptions-item>
+                </el-descriptions>
+                <div class="dim" style="margin-top:10px">
+                  设备状态与库存数字都只能通过流水变更，不允许直接改数。
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-main>
+    </el-container>
+  </el-container>
+
+  <!-- ================= 设备新增 ================= -->
+  <el-dialog v-model="dlgEquipment" title="新增设备" width="620px">
+    <el-form :model="eqForm" label-width="96px" size="default">
+      <el-row :gutter="12">
+        <el-col :span="12">
+          <el-form-item label="设备编号" required>
+            <el-input v-model="eqForm.equipmentNo" placeholder="如 DX-2026-0051"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="型号" required>
+            <el-input v-model="eqForm.model" placeholder="如 RO-10T"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="设备名称">
+            <el-input v-model="eqForm.name" placeholder="如 10t/h 反渗透主机"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="分类">
+            <el-select v-model="eqForm.category" placeholder="请选择" style="width:100%">
+              <el-option v-for="c in dict.equipmentCategory" :key="c" :label="c" :value="c"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="归属客户" required>
+            <el-select v-model="eqForm.customerId" placeholder="请选择" style="width:100%">
+              <el-option v-for="c in customers" :key="c.id" :label="c.short_name || c.name" :value="c.id"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="处理量">
+            <el-input v-model="eqForm.capacity" placeholder="如 10 t/h"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
+          <el-form-item label="安装位置">
+            <el-input v-model="eqForm.installAddress" placeholder="具体到厂区 / 车间"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="安装日期">
+            <el-date-picker v-model="eqForm.installDate" type="date" value-format="YYYY-MM-DD"
+                            placeholder="选择日期" style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="保修截止">
+            <el-date-picker v-model="eqForm.warrantyEnd" type="date" value-format="YYYY-MM-DD"
+                            placeholder="选择日期" style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-alert type="info" :closable="false" show-icon
+        title="设备编号唯一，重复时会被拒绝；新增后状态默认为「运行中」。"></el-alert>
+    </el-form>
+    <template #footer>
+      <el-button @click="dlgEquipment = false">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="submitEquipment">保存</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ================= 状态变更 ================= -->
+  <el-dialog v-model="dlgStatus" title="设备状态变更" width="480px">
+    <div class="status-current">
+      <span class="dim">当前设备</span>
+      <span class="bold">{{ statusEq.equipment_no }} · {{ statusEq.name }}</span>
+    </div>
+    <el-form label-width="90px" style="margin-top:12px">
+      <el-form-item label="变更为" required>
+        <el-select v-model="statusForm.toStatus" style="width:100%">
+          <el-option v-for="s in dict.equipmentStatus" :key="s.value" :label="s.label" :value="s.value"
+                     :disabled="s.value === statusEq.status"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="变更原因" required>
+        <el-input v-model="statusForm.reason" type="textarea" :rows="3"
+                  placeholder="必填。例如：膜元件堵塞，待更换"></el-input>
+      </el-form-item>
+    </el-form>
+    <el-alert type="warning" :closable="false" show-icon
+      title="每次变更都会写入状态流水，记录操作人、时间与原因，不可删除。"></el-alert>
+    <template #footer>
+      <el-button @click="dlgStatus = false">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="submitStatus">确认变更</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ================= 设备详情 ================= -->
+  <el-drawer v-model="dlgDetail" title="设备详情" size="640px">
+    <div v-if="detail.equipment">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="设备编号">{{ detail.equipment.equipment_no }}</el-descriptions-item>
+        <el-descriptions-item label="型号">{{ detail.equipment.model }}</el-descriptions-item>
+        <el-descriptions-item label="设备名称">{{ detail.equipment.name }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ detail.equipment.category }}</el-descriptions-item>
+        <el-descriptions-item label="归属客户">{{ detail.equipment.customer_full }}</el-descriptions-item>
+        <el-descriptions-item label="联系人">{{ detail.equipment.contact_person }} {{ detail.equipment.phone }}</el-descriptions-item>
+        <el-descriptions-item label="安装位置" :span="2">{{ detail.equipment.install_address }}</el-descriptions-item>
+        <el-descriptions-item label="安装日期">{{ detail.equipment.install_date }}</el-descriptions-item>
+        <el-descriptions-item label="保修截止">{{ detail.equipment.warranty_end || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="当前状态">
+          <el-tag :type="statusTag(detail.equipment.status)" size="small">{{ statusLabel(detail.equipment.status) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="处理量">{{ detail.equipment.capacity }}</el-descriptions-item>
+      </el-descriptions>
+
+      <el-tabs style="margin-top:16px">
+        <el-tab-pane :label="`状态流水 (${detail.logs.length})`">
+          <el-timeline v-if="detail.logs.length" style="padding-left:4px">
+            <el-timeline-item v-for="l in detail.logs" :key="l.id"
+                              :timestamp="fmt(l.changed_at)" placement="top"
+                              :type="statusTag(l.to_status)">
+              <div class="log-line">
+                <el-tag size="small" :type="statusTag(l.from_status)">{{ statusLabel(l.from_status) }}</el-tag>
+                <span class="arrow">→</span>
+                <el-tag size="small" :type="statusTag(l.to_status)">{{ statusLabel(l.to_status) }}</el-tag>
+                <span class="dim" style="margin-left:8px">操作人：{{ l.operator || '—' }}</span>
+              </div>
+              <div class="log-reason">原因：{{ l.reason }}</div>
+            </el-timeline-item>
+          </el-timeline>
+          <el-empty v-else description="暂无状态变更记录" :image-size="70"></el-empty>
+        </el-tab-pane>
+
+        <el-tab-pane :label="`维护记录 (${detail.maintenances.length})`">
+          <el-table :data="detail.maintenances" size="small" empty-text="暂无维护记录">
+            <el-table-column prop="record_no" label="单号" width="140"></el-table-column>
+            <el-table-column label="日期" width="96">
+              <template #default="{ row }">{{ (row.occurred_at || '').slice(0, 10) }}</template>
+            </el-table-column>
+            <el-table-column label="类型" width="88">
+              <template #default="{ row }">{{ typeLabel(row.type) }}</template>
+            </el-table-column>
+            <el-table-column prop="fault_desc" label="故障现象" min-width="180" show-overflow-tooltip></el-table-column>
+          </el-table>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+  </el-drawer>
+
+  <!-- ================= 维护记录新增 ================= -->
+  <el-dialog v-model="dlgMaintenance" title="新增维护记录" width="760px" top="6vh">
+    <el-form :model="mtForm" label-width="96px">
+      <el-row :gutter="12">
+        <el-col :span="12">
+          <el-form-item label="设备" required>
+            <el-select v-model="mtForm.equipmentId" placeholder="选择设备（自动带出客户）"
+                       filterable style="width:100%" @change="onEqPick">
+              <el-option v-for="e in allEquipments" :key="e.id"
+                         :label="`${e.equipment_no} · ${e.name}`" :value="e.id"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="归属客户">
+            <el-input :model-value="mtForm.customerName" disabled placeholder="选择设备后自动带出"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="维护类型" required>
+            <el-select v-model="mtForm.type" style="width:100%">
+              <el-option v-for="t in dict.maintenanceType" :key="t.value" :label="t.label" :value="t.value"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="发生日期" required>
+            <el-date-picker v-model="mtForm.occurredDate" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
+          <el-form-item label="故障现象">
+            <el-input v-model="mtForm.faultDesc" type="textarea" :rows="2"
+                      placeholder="如：UF-20T 超滤产水量下降至 12t/h，跨膜压差 0.12MPa"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="24">
+          <el-form-item label="处理方案">
+            <el-input v-model="mtForm.solution" type="textarea" :rows="2"
+                      placeholder="如：化学清洗，清洗后恢复至 19t/h"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="人工费">
+            <el-input-number v-model="mtForm.costLabor" :min="0" :step="100" style="width:100%"></el-input-number>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="下次保养">
+            <el-date-picker v-model="mtForm.nextDueDate" type="date" value-format="YYYY-MM-DD"
+                            placeholder="可留空" style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <div class="parts-box">
+        <div class="parts-head">
+          <span class="bold">备件用料</span>
+          <span class="dim">保存时按明细自动扣减库存，库存不足会被拒绝</span>
+          <div class="flex-1"></div>
+          <el-button size="small" type="primary" plain @click="addPartRow">+ 添加备件</el-button>
+        </div>
+        <el-table :data="mtForm.parts" size="small" empty-text="未使用备件">
+          <el-table-column label="备件" min-width="230">
+            <template #default="{ row }">
+              <el-select v-model="row.partId" filterable placeholder="选择备件" style="width:100%" size="small">
+                <el-option v-for="p in spares" :key="p.id"
+                           :label="`${p.name} ${p.spec || ''}（库存 ${p.stock_qty}${p.unit}）`" :value="p.id"></el-option>
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="用量" width="130">
+            <template #default="{ row }">
+              <el-input-number v-model="row.qty" :min="0.01" :step="1" size="small" style="width:100%"></el-input-number>
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="96" align="right">
+            <template #default="{ row }">¥{{ partSubtotal(row).toFixed(2) }}</template>
+          </el-table-column>
+          <el-table-column width="56" align="center">
+            <template #default="{ $index }">
+              <el-button link type="danger" size="small" @click="mtForm.parts.splice($index, 1)">删</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="parts-total">
+          备件合计 <span class="bold">¥{{ partsTotal.toFixed(2) }}</span>
+          <span class="dim" style="margin-left:14px">费用总计</span>
+          <span class="bold">¥{{ (partsTotal + Number(mtForm.costLabor || 0)).toFixed(2) }}</span>
+        </div>
+      </div>
+    </el-form>
+    <template #footer>
+      <el-button @click="dlgMaintenance = false">取消</el-button>
+      <el-button type="primary" :loading="saving" @click="submitMaintenance">保存并扣减库存</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ================= 维护记录详情 ================= -->
+  <el-dialog v-model="dlgMtDetail" title="维护记录详情" width="700px">
+    <div v-if="mtDetail.record">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="单号">{{ mtDetail.record.record_no }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ typeLabel(mtDetail.record.type) }}</el-descriptions-item>
+        <el-descriptions-item label="设备">{{ mtDetail.record.equipment_no }} · {{ mtDetail.record.eq_name }}</el-descriptions-item>
+        <el-descriptions-item label="客户">{{ mtDetail.record.customer_name }}</el-descriptions-item>
+        <el-descriptions-item label="发生时间" :span="2">{{ fmt(mtDetail.record.occurred_at) }}</el-descriptions-item>
+        <el-descriptions-item label="故障现象" :span="2">{{ mtDetail.record.fault_desc || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="处理方案" :span="2">{{ mtDetail.record.solution || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="人工费">¥{{ Number(mtDetail.record.cost_labor).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="备件费">¥{{ Number(mtDetail.record.cost_part).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="下次保养">{{ mtDetail.record.next_due_date || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="记录人">{{ mtDetail.record.operator || '—' }}</el-descriptions-item>
+      </el-descriptions>
+      <div class="panel-head" style="margin-top:16px">备件用料</div>
+      <el-table :data="mtDetail.parts" size="small" empty-text="本次未使用备件">
+        <el-table-column prop="part_no" label="编号" width="90"></el-table-column>
+        <el-table-column prop="name" label="名称" min-width="140"></el-table-column>
+        <el-table-column prop="spec" label="规格" min-width="110"></el-table-column>
+        <el-table-column label="用量" width="90">
+          <template #default="{ row }">{{ row.qty }} {{ row.unit }}</template>
+        </el-table-column>
+        <el-table-column label="单价" width="90" align="right">
+          <template #default="{ row }">¥{{ Number(row.unit_price || 0).toFixed(2) }}</template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </el-dialog>
+</div>
+
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.5.6/dist/index.full.min.js"></script>
+<script src="https://unpkg.com/element-plus@2.5.6/dist/locale/zh-cn.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="mock-api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
