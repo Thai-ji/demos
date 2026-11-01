@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power BI Dashboard · Demo</title>
+<style>
+  :root{
+    --ink:#16213c; --sub:#5b6b8c; --line:#e3e8f2; --bg:#f5f7fb;
+    --brand:#f2c811; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header{background:linear-gradient(135deg,#1b2540,#2b3a63);color:#fff;padding:44px 0 40px}
+  header .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#f2c811;font-weight:600}
+  header h1{margin:10px 0 8px;font-size:32px;line-height:1.2;font-weight:700}
+  header p{margin:0;color:#c3cde3;font-size:15px}
+  .badge{display:inline-block;margin-top:16px;padding:6px 12px;border-radius:999px;
+    background:rgba(242,200,17,.14);color:#f2c811;font-size:12.5px;font-weight:600}
+  section{padding:36px 0}
+  h2{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);
+    margin:0 0 16px;font-weight:700}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:26px 28px;font-size:16.5px;line-height:1.75;margin:0}
+  .lead strong{color:var(--ink)}
+  figure{margin:0 0 30px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;overflow:hidden}
+  figure img{display:block;width:100%;height:auto}
+  figcaption{padding:14px 20px;font-size:14px;color:var(--sub);border-top:1px solid var(--line)}
+  figcaption b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .card h3{margin:0 0 10px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+  .card ul{margin:0;padding-left:18px;font-size:14.5px;color:#33405e}
+  .card li{margin:5px 0}
+  .note{font-size:13.5px;color:var(--sub);margin-top:8px}
+  footer{border-top:1px solid var(--line);padding:26px 0 50px;font-size:14px;color:var(--sub)}
+  footer a{color:#3b5bdb;text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}header h1{font-size:25px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Portfolio · Report Demo</div>
+    <h1>Power BI Dashboard</h1>
+    <p>One page, built end to end in Power BI Desktop — model, measures and layout.</p>
+    <span class="badge">Demo data · not a production system</span>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>What this covers</h2>
+    <p class="lead">
+      Power BI reporting built end to end in Power BI Desktop. A report can include
+      <strong>KPI cards</strong> with period-over-period deltas, <strong>monthly and weekly trend lines</strong>,
+      <strong>category comparisons</strong> by region or channel, <strong>slicers</strong> that filter the whole page,
+      and a <strong>sortable detail table</strong>. Data comes from Excel, CSV or a database connection,
+      modelled in Power Query with DAX measures on top. You receive the <strong>.pbix</strong> file plus a
+      one-page handover note. Changing data or fields is free; restyling (colours, fonts, layout) is quoted per round.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The report</h2>
+
+    <figure>
+      <img src="overview.png" alt="Power BI report overview: four KPI cards, monthly revenue trend, revenue by region, region slicer and a detail table">
+      <figcaption>
+        <b>Overview.</b> Four KPI cards, monthly revenue trend against the same months last year,
+        revenue by region, a region slicer, and a detail table of 60 rows (month × region).
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img src="filtered.png" alt="The same report after selecting Europe in the slicer, with all visuals recalculated">
+      <figcaption>
+        <b>Same page, one click on “Europe”.</b> Every visual recalculates — revenue $2.88M → $745K,
+        orders 3,783 → 969, conversion 3.49% → 3.50%, the trend line rescales, the table narrows to Europe.
+      </figcaption>
+    </figure>
+
+    <p class="note">
+      These are static captures of the report. The filter is live in the <code>.pbix</code> file —
+      open it in Power BI Desktop, no data connection needed, the data is stored in the file.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="grid">
+      <div class="card">
+        <h3>In this report</h3>
+        <ul>
+          <li>4 KPI cards with deltas</li>
+          <li>Monthly trend + prior-year comparison</li>
+          <li>Weekly revenue bars</li>
+          <li>Region and channel comparison</li>
+          <li>Region slicer, cross-filtering</li>
+          <li>Detail table, sortable and paged</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>How it is built</h3>
+        <ul>
+          <li>Data modelled in Power Query</li>
+          <li>DAX measures: revenue, orders, AOV, conversion</li>
+          <li>Import mode — the .pbix is self-contained</li>
+          <li>Page 1920 × 1080, 16:9</li>
+          <li>English field names throughout</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    More demos:
+    <a href="../huanbao/">Operations platform</a> ·
+    <a href="../dianshang/">E-commerce orders</a>
+    <div style="margin-top:8px">All figures on this page come from generated demo data.</div>
+  </div>
+</footer>
+
+</body>
+</html>
