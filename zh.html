@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>做过的样例 · 点开就能看</title>
+<style>
+  :root{
+    --ink:#16213c; --sub:#5b6b8c; --line:#e3e8f2; --bg:#f5f7fb;
+    --brand:#f2c811; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  a{color:#3b5bdb;text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{background:linear-gradient(135deg,#1b2540,#2b3a63);color:#fff;padding:46px 0 42px}
+  header .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#f2c811;font-weight:600}
+  header h1{margin:10px 0 10px;font-size:30px;line-height:1.35;font-weight:700;max-width:800px}
+  header p{margin:0;color:#c3cde3;font-size:15.5px;max-width:760px}
+  .badge{display:inline-block;margin-top:18px;padding:6px 12px;border-radius:999px;
+    background:rgba(242,200,17,.14);color:#f2c811;font-size:12.5px;font-weight:600}
+  .lang{float:right;font-size:13px;color:#c3cde3}
+  .lang a{color:#f2c811}
+  section{padding:36px 0 6px}
+  h2{font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);
+    margin:0 0 8px;font-weight:700}
+  .note{font-size:14px;color:var(--sub);margin:0 0 18px;max-width:780px}
+  figure{margin:0;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;overflow:hidden}
+  figure img{display:block;width:100%;height:auto}
+  figcaption{padding:12px 16px;font-size:13.5px;color:var(--sub);border-top:1px solid var(--line)}
+  figcaption b{color:var(--ink)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .demos{list-style:none;margin:0;padding:0}
+  .demos li{display:flex;gap:18px;align-items:center;background:var(--card);
+    border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+  .demos .shot{flex:0 0 236px}
+  .demos .shot img{display:block;width:100%;height:auto;border-radius:9px;border:1px solid var(--line)}
+  .demos h3{margin:0 0 4px;font-size:17px;font-weight:700}
+  .demos p{margin:0;font-size:14.5px;color:#33405e}
+  .tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;
+    background:rgba(242,200,17,.2);color:#7a5c00;font-size:11.5px;font-weight:700;
+    letter-spacing:.04em;vertical-align:2px}
+  footer{border-top:1px solid var(--line);padding:26px 0 50px;margin-top:26px;
+    font-size:13.5px;color:var(--sub)}
+  .contact{margin-top:14px;font-size:14.5px;color:var(--ink)}
+  .contact b{color:#1b2540}
+  @media (max-width:760px){
+    .grid2{grid-template-columns:1fr}
+    .demos li{display:block}
+    .demos .shot{flex:none;margin-bottom:12px}
+    header h1{font-size:23px}
+    .lang{float:none;display:block;margin-bottom:10px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="lang"><a href="./">English</a></div>
+    <div class="kicker">做过的样例</div>
+    <h1>报表、看板和小工具——都是点开就能看的成品。</h1>
+    <p>Power BI 报表（含阿拉伯语右到左排版）、可交互的网页看板、运营与电商团队的内部系统，
+       还有一条把文案自动排成竖屏短视频的流水线。下面每一个都能直接点开，不用安装。</p>
+    <span class="badge">示例数据 · 非生产系统</span>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>阿拉伯语 RTL 报表 · Power BI</h2>
+    <p class="note">
+      两页全部按右到左手工排版——Power BI 没有 RTL 开关，每一张图都是逐个镜像调出来的。
+    </p>
+    <div class="grid2">
+      <figure>
+        <img src="rtl-page1.png" alt="阿拉伯语右到左 Power BI 报表第一页：KPI 卡片、从右边缘生长的地区柱状图、从右向左走的十二个月趋势">
+        <figcaption>
+          <b>第 1 页 · 总览。</b>KPI 卡片、从右边缘生长的地区柱状图，以及从右向左走的十二个月趋势。
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="rtl-page2.png" alt="同一份阿拉伯语报表第二页：成本、折扣与退货卡片，两个切片器，以及月份列在最右侧的明细表">
+        <figcaption>
+          <b>第 2 页 · 明细与筛选。</b>成本、折扣、退货卡片，两个可点的切片器，以及首列在最右侧的明细表。
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>演示</h2>
+    <ul class="demos">
+      <li>
+        <a class="shot" href="powerbi/"><img src="thumb-powerbi.jpg" alt="Power BI 报表演示：KPI 卡片、收入趋势、分区收入和明细表"></a>
+        <div>
+          <h3><a href="powerbi/">Power BI 看板</a><span class="tag">含 RTL</span></h3>
+          <p>KPI 卡片、月度与周度趋势、地区切片器和 60 行明细表，外加上面那两份阿拉伯语右到左报表。</p>
+        </div>
+      </li>
+      <li>
+        <a class="shot" href="dashboard/"><img src="thumb-dashboard.jpg" alt="销售业绩看板：六张 KPI 卡片和四张图"></a>
+        <div>
+          <h3><a href="dashboard/">销售业绩看板</a></h3>
+          <p>六张 KPI 卡片、四张图、30 天到 12 个月预设、自定义日期区间，以及分页明细表。</p>
+        </div>
+      </li>
+      <li>
+        <a class="shot" href="huanbao/"><img src="thumb-huanbao.jpg" alt="运营管理平台演示：看板、设备、维保、备件页面"></a>
+        <div>
+          <h3><a href="huanbao/">运营管理平台</a></h3>
+          <p>面向环保服务团队：看板、设备台账、维保记录、备件库存、客户与系统设置。</p>
+        </div>
+      </li>
+      <li>
+        <a class="shot" href="dianshang/"><img src="thumb-dianshang.jpg" alt="电商订单后台演示：看板、商品、订单、库存与退货页面"></a>
+        <div>
+          <h3><a href="dianshang/">电商订单后台</a></h3>
+          <p>看板、商品、订单、库存发货、客户，以及售后退货。</p>
+        </div>
+      </li>
+      <li>
+        <a class="shot" href="ai-video/"><img src="ai-video/poster.png" alt="一张竖屏 9:16 视频卡片，带标题和字幕条"></a>
+        <div>
+          <h3><a href="ai-video/">文案自动成片（竖屏短视频）</a><span class="tag">新</span></h3>
+          <p>给一份文案，自动排成五张竖屏卡片，加缓慢推镜与溶解转场、烧字幕，导出可直接发布的 15 秒 1080×1920 mp4。
+             改文案重跑即可，不用重做设计。<b>画面为排版与图形动画，不含实拍素材，也不含 AI 生成画面。</b></p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    示例数据 · 非生产系统。两个平台类演示有演示登录页（账号 admin / 密码 admin123）。
+  </div>
+</footer>
+
+</body>
+</html>
