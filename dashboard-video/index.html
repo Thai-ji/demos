@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>数据看板动画成片 · 30 秒 16:9（样例）</title>
+<style>
+  :root{
+    --bg:#070d16; --panel:#0e1826; --line:#1c2b3f;
+    --ink:#e8eef6; --ink2:#8ba3bf; --accent:#38bdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+  }
+  .wrap{
+    display:flex; gap:44px; align-items:center;
+    max-width:1240px; width:100%; flex-wrap:wrap; justify-content:center;
+  }
+  .player{
+    flex:1 1 640px; max-width:720px;
+    border-radius:16px; overflow:hidden;
+    background:#000; border:1px solid var(--line);
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  video{ display:block; width:100%; height:auto; background:#000; }
+  .info{ flex:1 1 380px; min-width:300px; }
+  .kicker{
+    display:inline-block; font-size:12px; letter-spacing:2px;
+    color:var(--accent); border:1px solid var(--accent);
+    border-radius:999px; padding:5px 14px; margin-bottom:22px;
+  }
+  h1{ font-size:31px; line-height:1.38; font-weight:700; letter-spacing:.5px; }
+  h1 em{ font-style:normal; color:var(--accent); }
+  .sub{ color:var(--ink2); font-size:15px; line-height:1.9; margin-top:16px; }
+  .spec{
+    margin-top:26px; border-top:1px solid var(--line); padding-top:20px;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 26px;
+  }
+  .spec div{ font-size:13px; color:var(--ink2); }
+  .spec b{ display:block; color:var(--ink); font-size:16px; font-weight:600; margin-bottom:3px; }
+  .note{
+    margin-top:24px; font-size:12.5px; line-height:1.85; color:#6f8298;
+    border-left:2px solid var(--line); padding-left:14px;
+  }
+  .covers{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; }
+  .covers img{ width:132px; height:auto; border-radius:8px; border:1px solid var(--line); display:block; }
+  .covers span{ display:block; font-size:11.5px; color:var(--ink2); margin-top:5px; }
+  .back{ margin-top:26px; font-size:13px; }
+  .back a{ color:var(--accent); text-decoration:none; }
+  .back a:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="player">
+    <video src="dashboard-30s.mp4" poster="poster.png" controls playsinline preload="metadata"></video>
+  </div>
+
+  <div class="info">
+    <span class="kicker">样例 · 数据看板动画</span>
+    <h1>把一张看板<br />做成 <em>30 秒的横屏成片</em></h1>
+    <p class="sub">
+      片头 → 四张 KPI 卡数字滚动 → 12 个月柱子逐条长出、叠加趋势线 →
+      三条结论卡 → 片尾。全程带字幕条，静音播放也能看懂。
+      数据或文案一改，脚本重跑就出新片，不用重做设计。
+    </p>
+
+    <div class="spec">
+      <div><b>1920 × 1080</b>横屏 16:9</div>
+      <div><b>30.0 秒</b>30 fps · 900 帧</div>
+      <div><b>H.264</b>883 KB，直传平台无压力</div>
+      <div><b>5 段结构</b>片头 / KPI / 趋势 / 结论 / 片尾</div>
+    </div>
+
+    <p class="note">
+      说明：画面中的卡片、柱子、趋势线、底纹全部由绘图脚本生成，不含实拍素材，也不含 AI 生成图片；
+      数据为虚构示例，不含任何真实客户数据。封面另有浅色商务版与撞色版，可按投放场景替换。
+    </p>
+
+    <div class="covers">
+      <div><img src="poster.png" alt="封面 A 深色科技版"><span>A · 深色科技（当前）</span></div>
+      <div><img src="cover-b.png" alt="封面 B 浅色商务版"><span>B · 浅色商务</span></div>
+      <div><img src="cover-c.png" alt="封面 C 撞色简约版"><span>C · 撞色简约</span></div>
+    </div>
+
+    <div class="back"><a href="../">← 返回作品集</a></div>
+  </div>
+</div>
+</body>
+</html>
