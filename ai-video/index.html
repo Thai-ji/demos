@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>图文成片 · 15 秒竖屏短视频（样例）</title>
+<style>
+  :root{
+    --bg:#070d16; --panel:#0e1826; --line:#1c2b3f;
+    --ink:#e8eef6; --ink2:#8ba3bf; --accent:#38bdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+  }
+  .wrap{
+    display:flex; gap:48px; align-items:center;
+    max-width:1180px; width:100%; flex-wrap:wrap; justify-content:center;
+  }
+  .player{
+    width:360px; flex:0 0 360px;
+    border-radius:18px; overflow:hidden;
+    background:#000; border:1px solid var(--line);
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  video{ display:block; width:100%; height:auto; background:#000; }
+  .info{ flex:1 1 420px; min-width:320px; }
+  .kicker{
+    display:inline-block; font-size:12px; letter-spacing:2px;
+    color:var(--accent); border:1px solid var(--accent);
+    border-radius:999px; padding:5px 14px; margin-bottom:22px;
+  }
+  h1{ font-size:34px; line-height:1.35; font-weight:700; letter-spacing:.5px; }
+  h1 em{ font-style:normal; color:var(--accent); }
+  .sub{ color:var(--ink2); font-size:15px; line-height:1.9; margin-top:16px; }
+  .spec{
+    margin-top:28px; border-top:1px solid var(--line); padding-top:22px;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 28px;
+  }
+  .spec div{ font-size:13px; color:var(--ink2); }
+  .spec b{ display:block; color:var(--ink); font-size:16px; font-weight:600; margin-bottom:3px; }
+  .note{
+    margin-top:26px; font-size:12.5px; line-height:1.85; color:#6f8298;
+    border-left:2px solid var(--line); padding-left:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="player">
+    <video src="demo-short-9x16.mp4" poster="poster.png" controls playsinline preload="metadata"></video>
+  </div>
+
+  <div class="info">
+    <span class="kicker">样例 · 图文成片</span>
+    <h1>一条 <em>15 秒竖屏短视频</em><br />从一份文案到成片</h1>
+    <p class="sub">
+      给一份产品卖点文案，自动排版成五张竖屏卡片，加缓慢推镜与转场，
+      导出可直接发布的 mp4。改文案就重出一条，不用重做设计。
+    </p>
+
+    <div class="spec">
+      <div><b>1080 × 1920</b>竖屏 9:16</div>
+      <div><b>15.1 秒</b>30 fps</div>
+      <div><b>H.264 + AAC</b>通用兼容</div>
+      <div><b>2.99 MB</b>直传平台无压力</div>
+    </div>
+
+    <p class="note">
+      说明：这是自动化排版流水线的样例，画面元素为排版与图形动画，不含实拍素材，也不含 AI 生成画面。
+      要换成客户的产品图或 AI 生成画面，替换素材后重跑即可。
+    </p>
+  </div>
+</div>
+</body>
+</html>
