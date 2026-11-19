@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>多租户 SaaS 管理后台 · 演示</title>
+<link rel="stylesheet" href="vendor/element-plus.css" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= 登录 / 注册 ================= -->
+  <div class="auth-wrap" v-if="!session">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="logo-mark">MT</div>
+        <div>
+          <h1>多租户 SaaS 管理后台</h1>
+          <p>演示版 · 数据只存在你本机浏览器，不联网</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="tab" :class="{on: mode==='login'}" v-on:click="mode='login'">登录</button>
+        <button class="tab" :class="{on: mode==='register'}" v-on:click="mode='register'">注册新租户</button>
+      </div>
+
+      <!-- 登录 -->
+      <div v-if="mode==='login'">
+        <label class="fld-label">邮箱</label>
+        <el-input v-model="loginForm.email" placeholder="demo@demo.com" size="large"></el-input>
+        <label class="fld-label">密码</label>
+        <el-input v-model="loginForm.pwd" type="password" placeholder="demo123" size="large" v-on:keyup.enter="doLogin"></el-input>
+        <el-button type="primary" size="large" class="block-btn" :loading="loading" v-on:click="doLogin">登 录</el-button>
+        <p class="hint">
+          演示账号 <code>demo@demo.com</code> / <code>demo123</code>。
+          这个账号同时属于两个租户：在「星河科技」是<b>所有者</b>，在「云栖数据」是<b>成员</b>——登录后切一下租户，菜单会跟着变。
+        </p>
+      </div>
+
+      <!-- 注册 -->
+      <div v-if="mode==='register'">
+        <label class="fld-label">公司 / 团队名称</label>
+        <el-input v-model="regForm.company" placeholder="例如：某某科技有限公司" size="large"></el-input>
+        <label class="fld-label">你的名字</label>
+        <el-input v-model="regForm.name" placeholder="例如：张三" size="large"></el-input>
+        <label class="fld-label">邮箱</label>
+        <el-input v-model="regForm.email" placeholder="you@example.com" size="large"></el-input>
+        <label class="fld-label">密码（至少 6 位）</label>
+        <el-input v-model="regForm.pwd" type="password" placeholder="至少 6 位" size="large" v-on:keyup.enter="doRegister"></el-input>
+        <el-button type="primary" size="large" class="block-btn" :loading="loading" v-on:click="doRegister">创建租户并进入</el-button>
+        <p class="hint">注册即创建一个独立租户，你成为该租户的<b>所有者</b>。可以来回切换，验证租户之间数据不串。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 工作区 ================= -->
+  <div class="shell" v-if="session">
+
+    <aside class="side">
+      <div class="side-brand">
+        <div class="logo-mark sm">MT</div>
+        <span>多租户 SaaS</span>
+      </div>
+      <nav class="nav">
+        <button
+          v-for="v in allowedViews"
+          :key="v.key"
+          class="nav-item"
+          :class="{on: view===v.key}"
+          v-on:click="go(v.key)">
+          <span class="nav-ico">{{ v.icon }}</span>{{ v.label }}
+        </button>
+      </nav>
+      <div class="side-foot">
+        <button class="reset-btn" v-on:click="resetDemo">重置演示数据</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="tb-left">
+          <el-select v-model="session.tenantId" size="default" style="width:230px" v-on:change="switchTenant">
+            <el-option
+              v-for="t in session.tenants"
+              :key="t.id"
+              :label="t.name + ' · ' + t.roleLabel"
+              :value="t.id"></el-option>
+          </el-select>
+          <span class="role-tag" :class="'role-' + session.role">{{ session.roleLabel }}</span>
+        </div>
+        <div class="tb-right">
+          <span class="who">{{ session.name }}</span>
+          <el-button text v-on:click="logout">退出登录</el-button>
+        </div>
+      </header>
+
+      <!-- 越权拦截 -->
+      <section class="denied" v-if="view==='denied'">
+        <div class="denied-card">
+          <div class="denied-ico">!</div>
+          <h2>没有访问权限</h2>
+          <p>
+            你当前在「{{ session.tenantName }}」的身份是 <b>{{ session.roleLabel }}</b>，
+            无权访问「{{ deniedLabel }}」。
+          </p>
+          <p class="denied-note">这次尝试已经记进审计日志——越权不是白屏，也不是放行。</p>
+          <el-button type="primary" v-on:click="go('dashboard')">回到总览</el-button>
+        </div>
+      </section>
+
+      <!-- 总览 -->
+      <section v-if="view==='dashboard'">
+        <div class="page-head">
+          <h2>总览</h2>
+          <p>当前租户：{{ session.tenantName }} · 所有数字只统计本租户，切换租户后整体变化</p>
+        </div>
+        <div class="cards" v-if="dash">
+          <div class="card"><span>成员数</span><b>{{ dash.memberCount }}</b><em>人</em></div>
+          <div class="card"><span>项目总数</span><b>{{ dash.projectCount }}</b><em>个</em></div>
+          <div class="card"><span>进行中</span><b>{{ dash.activeCount }}</b><em>个</em></div>
+          <div class="card"><span>存储用量</span><b>{{ dash.storageUsed }}</b><em>/ {{ dash.quota }} GB</em></div>
+        </div>
+        <div class="charts">
+          <div class="panel">
+            <h3>近半年新建项目</h3>
+            <div id="chart-trend" class="chart"></div>
+          </div>
+          <div class="panel">
+            <h3>项目状态分布</h3>
+            <div id="chart-status" class="chart"></div>
+          </div>
+        </div>
+        <p class="tips">
+          想验证「多租户隔离」：点右上角切换租户，回来对比这四张卡和两张图的数字。
+        </p>
+      </section>
+
+      <!-- 项目 -->
+      <section v-if="view==='projects'">
+        <div class="page-head row">
+          <div>
+            <h2>项目 / 工单</h2>
+            <p>本租户共 {{ projects.length }} 个项目</p>
+          </div>
+          <el-button type="primary" v-on:click="dlgProject=true">新建项目</el-button>
+        </div>
+        <table class="grid">
+          <thead>
+            <tr><th style="width:120px">项目编号</th><th>名称</th><th style="width:100px">状态</th><th style="width:110px">负责人</th><th style="width:120px">更新日期</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in projects" :key="p.id">
+              <td class="mono">{{ p.code }}</td>
+              <td>{{ p.name }}</td>
+              <td><span class="pill" :class="'st-' + p.status">{{ p.status }}</span></td>
+              <td>{{ p.owner }}</td>
+              <td class="mono dim">{{ p.updatedAt }}</td>
+            </tr>
+            <tr v-if="projects.length===0"><td colspan="5" class="empty-cell">本租户还没有项目</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 成员 -->
+      <section v-if="view==='members'">
+        <div class="page-head row">
+          <div>
+            <h2>成员管理</h2>
+            <p>仅所有者与管理员可见 · 只有所有者能改角色和移除</p>
+          </div>
+          <el-button type="primary" v-on:click="dlgInvite=true">邀请成员</el-button>
+        </div>
+        <table class="grid">
+          <thead>
+            <tr><th>姓名</th><th>邮箱</th><th style="width:110px">角色</th><th style="width:210px">操作</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="m in members" :key="m.id">
+              <td>{{ m.name }}</td>
+              <td class="mono">{{ m.email }}</td>
+              <td><span class="pill" :class="'role-' + m.role">{{ m.roleLabel }}</span></td>
+              <td>
+                <template v-if="session.role==='owner' && m.role!=='owner'">
+                  <el-button text size="small" v-on:click="changeRole(m, m.role==='admin' ? 'member' : 'admin')">
+                    改为{{ m.role==='admin' ? '成员' : '管理员' }}
+                  </el-button>
+                  <el-button text size="small" class="danger" v-on:click="removeMember(m)">移除</el-button>
+                </template>
+                <span v-else class="dim">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 审计 -->
+      <section v-if="view==='audit'">
+        <div class="page-head">
+          <h2>审计日志</h2>
+          <p>谁、在哪个租户、做了什么，全部留痕 · 只看本租户</p>
+        </div>
+        <table class="grid">
+          <thead>
+            <tr><th style="width:160px">时间</th><th style="width:120px">操作人</th><th style="width:90px">角色</th><th>动作</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="a in audits" :key="a.id">
+              <td class="mono dim">{{ a.at }}</td>
+              <td>{{ a.who }}</td>
+              <td><span class="pill" :class="'role-' + a.role">{{ a.role==='owner' ? '所有者' : a.role==='admin' ? '管理员' : '成员' }}</span></td>
+              <td>{{ a.action }}</td>
+            </tr>
+            <tr v-if="audits.length===0"><td colspan="4" class="empty-cell">暂无记录</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 租户设置 -->
+      <section v-if="view==='settings'">
+        <div class="page-head">
+          <h2>租户设置</h2>
+          <p>仅所有者可见 · 成员和管理员看不到这个入口，直接改地址也会被拦</p>
+        </div>
+        <div class="panel narrow" v-if="settingsData">
+          <label class="fld-label">租户名称</label>
+          <el-input v-model="settingsForm.name" size="large"></el-input>
+          <div class="kv">
+            <div><span>当前套餐</span><b>{{ settingsData.plan }}</b></div>
+            <div><span>成员上限</span><b>{{ settingsData.quota }} 人</b></div>
+            <div><span>已用存储</span><b>{{ settingsData.storageUsed }} GB</b></div>
+            <div><span>创建时间</span><b class="mono">{{ settingsData.createdAt }}</b></div>
+          </div>
+          <el-button type="primary" v-on:click="saveSettings">保存</el-button>
+        </div>
+      </section>
+
+      <!-- 新建项目弹窗 -->
+      <el-dialog v-model="dlgProject" title="新建项目" width="480px">
+        <label class="fld-label">项目编号（留空自动生成）</label>
+        <el-input v-model="projectForm.code" placeholder="例如 XH-2047"></el-input>
+        <label class="fld-label">项目名称</label>
+        <el-input v-model="projectForm.name" placeholder="例如 数据质量巡检"></el-input>
+        <label class="fld-label">初始状态</label>
+        <el-select v-model="projectForm.status" style="width:100%">
+          <el-option label="待启动" value="待启动"></el-option>
+          <el-option label="进行中" value="进行中"></el-option>
+          <el-option label="已完成" value="已完成"></el-option>
+        </el-select>
+        <template #footer>
+          <el-button v-on:click="dlgProject=false">取消</el-button>
+          <el-button type="primary" v-on:click="createProject">创建</el-button>
+        </template>
+      </el-dialog>
+
+      <!-- 邀请成员弹窗 -->
+      <el-dialog v-model="dlgInvite" title="邀请成员" width="480px">
+        <label class="fld-label">邮箱</label>
+        <el-input v-model="inviteForm.email" placeholder="teammate@example.com"></el-input>
+        <label class="fld-label">角色</label>
+        <el-select v-model="inviteForm.role" style="width:100%">
+          <el-option label="成员" value="member"></el-option>
+          <el-option label="管理员" value="admin"></el-option>
+        </el-select>
+        <p class="hint" style="margin-top:12px">演示版不发真邮件，邀请后该邮箱直接出现在成员列表里，可用 <code>demo123</code> 登录体验。</p>
+        <template #footer>
+          <el-button v-on:click="dlgInvite=false">取消</el-button>
+          <el-button type="primary" v-on:click="inviteMember">邀请</el-button>
+        </template>
+      </el-dialog>
+
+    </main>
+  </div>
+
+</div>
+
+<script src="vendor/vue.global.prod.js"></script>
+<script src="vendor/element-plus.full.min.js"></script>
+<script src="vendor/element-plus-zh-cn.js"></script>
+<script src="vendor/echarts.min.js"></script>
+<script src="mock.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
